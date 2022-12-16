@@ -1,0 +1,88 @@
+{
+  "name": "@concepto/vue",
+  "version": "2.0.1",
+  "description": "Concepto DSL - visually create and maintain modern VUE+MF node.js based apps (@vue)",
+  "keywords": [
+    "creador",
+    "puntorigen",
+    "concepto",
+    "conceptodsl",
+    "dsl",
+    "vue",
+    "mf"
+  ],
+  "license": "MIT",
+  "author": "Pablo Schaffner",
+  "homepage": "http://github.com/puntorigen4u/vue_dsl.git",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/puntorigen4u/vue_dsl.git"
+  },
+  "bugs": {
+    "mail": "pablo@puntorigen.com",
+    "url": "http://github.com/puntorigen4u/vue_dsl/issues"
+  },
+  "main": "lib/index.js",
+  "bin": {
+    "vue_dsl": "bin/cli"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development rollup -c",
+    "build": "cross-env NODE_ENV=production rollup -c && npm run docs",
+    "docs": "jsdoc2md -t README.hbs src/*.js > README.md",
+    "test_dsl": "npm run dev && node test/pablo.js test/testchico/vue.dsl",
+    "test2": "npm run dev && node test/pablo.js test/test2/vue.dsl"
+  },
+  "dependencies": {
+    "@concepto/console": "*",
+    "@concepto/dsl_parser": "*",
+    "@concepto/interface": "*",
+    "asciify-image": "^0.1.6",
+    "await-spawn": "^4.0.2",
+    "camelcase": "^5.3.1",
+    "cfonts": "^2.9.1",
+    "cheerio": "^1.0.0-rc.3",
+    "ci-info": "^3.1.1",
+    "crypto-hash": "^1.3.0",
+    "encrypt-with-password": "^1.0.0",
+    "extractjs": "^0.3.1",
+    "fast-case": "^1.6.0",
+    "fs-extra": "^9.1.0",
+    "he": "^1.2.0",
+    "ini": "^1.3.5",
+    "is-port-reachable": "^3.0.0",
+    "js-beautify": "^1.13.5",
+    "jss": "^10.6.0",
+    "jss-plugin-global": "^10.6.0",
+    "lorem-ipsum": "^2.0.3",
+    "minimatch": "^3.0.4",
+    "mri": "^1.1.6",
+    "node-fetch": "^2.6.1",
+    "node-persist": "^3.1.0",
+    "open-terminal": "^0.1.11",
+    "ora": "^5.4.0",
+    "password-generator": "^2.3.2",
+    "prettier": "^2.2.1",
+    "print-code": "^1.0.2",
+    "recursive-copy": "^2.0.11",
+    "safe-eval": "^0.4.1",
+    "serial-number": "^1.3.0",
+    "terminal-tab": "^0.0.7",
+    "url-record": "^1.0.1",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "@ampproject/rollup-plugin-closure-compiler": "^0.26.0",
+    "@babel/core": "^7.11.4",
+    "@babel/preset-env": "^7.11.0",
+    "@rollup/plugin-babel": "^5.2.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "cross-env": "^7.0.2",
+    "jsdoc-to-markdown": "^7.0.1",
+    "rollup": "^2.26.5",
+    "rollup-plugin-copy-assets": "^2.0.3"
+  },
+  "scarfSettings": {
+    "enabled": false
+  }
+}

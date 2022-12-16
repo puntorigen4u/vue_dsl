@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+process.env.UV_THREADPOOL_SIZE=8*require('os').cpus().length;
+//const cli = require('command-line-args');
+const open_console = require('@concepto/console');
+const pkg = require('../package.json');
+const vue = require('../lib/index');
+const mri = require('mri');
+let myArgs = mri(process.argv, {
+    alias: {
+        src: ['s','source'],
+        clean: ['x','clear'],
+        cpu: ['c','cpu'],
+        help: ['h','ayuda'],
+        debug: 'd',
+        justgit: ['g','justgit'],
+        nodeploy: ['n','nodeploy'],
+        deploy: ['p','deploy'],
+        watch: ['w','watch'],
+        folder: ['f','folder'],
+        aws_region: ['aws_region'],
+        secrets_pass: ['secrets-pass'],
+        save_password: ['secrets-pass-save'],
+        silent: ['silent'],
+        diff_from: ['diff-from'],
+        export_html: ['export-html']
+    },
+    boolean: ['clean','debug','justgit','nodeploy'],
+    default: {
+        clean:false,
+        debug:false,
+        justgit:false,
+        nodeploy:false
+    }
+});
+delete myArgs._;
+if (myArgs.cpu) {
+    process.env.UV_THREADPOOL_SIZE=8*parseFloat(myArgs.cpu);
+    delete myArgs.cpu;
+}
+
+let getSerial = function() {
+    return new Promise(function(resolve,reject) {
+        let _serial = require('serial-number');
+        _serial(function(err,value) {
+            if (err) reject(err);
+            resolve(value);
+        });
+    });
+};
+
+/* */
+(async () => {
+    // testing code here
+    //let file = (myArgs.length>0)?myArgs[0]:'vue.dsl';
+    //let debug = (myArgs.length>1)?eval(myArgs[1].trim()):false;
+    let x_console = new open_console();
+    let serial = await getSerial();
+    x_console.title({ title:`Concepto VUE_DSL Compiler v${pkg.version}`, titleColor:'brightYellow', color:'green' });
+    //
+    let exists = async function(dir_or_file) {
+        let fs = require('fs').promises;
+        try {
+            await fs.access(dir_or_file);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+    //
+    let savePassword = async function(args) {
+        let path = require('path'), fs = require('fs').promises;
+        let _secret_file = path.join(process.cwd(),'.secrets-pass');
+        if (args.src) {
+            _secret_file = path.join(path.dirname(path.resolve(args.src)),'.secrets-pass');
+        }
+        let encrypt = require('encrypt-with-password');
+        if (args.save_password) {
+            //save the given password to disk and set myArgs.secrets_pass
+            args.secrets_pass = args.save_password;
+            let new_content = encrypt.encrypt(args.save_password,serial);
+            await fs.writeFile(_secret_file,new_content,'utf-8');
+            x_console.out({ message:`secret password saved as requested!\n`, color:'brightGreen'});
+        } else {
+            //test if there is a .secrets-pass file, recover encrypted saved pass       
+            if ((await exists(_secret_file))) {
+                x_console.out({ message:`.secrets-pass file found on current directory`, color:'dim'});
+                try {
+                    let fdata = await fs.readFile(_secret_file,'utf-8');
+                    args.secrets_pass = encrypt.decrypt(fdata,serial);
+                    x_console.out({ message:`.secret-pass read successfully!\n`, color:'brightGreen' });
+                } catch(badpass) {
+                    x_console.out({ message:`error reading .secret-pass file (maybe you changed computer?)\n`, color:'brightRed' });
+                }
+            }
+        }
+        return args;
+    };
+    let printUsage = function() {
+        x_console.out({ message:'Usage:', color:'cyan' });
+        x_console.out({ message:'vue_dsl [options]', color:'yellow' });
+        console.log('');
+        //if (myArgs.help) {
+            x_console.out({ message:'Options:', color:'brightCyan' });
+            x_console.out({ message:'-s, --src vue.dsl\t\t(required) relative/absolute vue.dsl file to parse', color:'cyan' });
+            x_console.out({ message:'-x, --clean\t\t\tclear cache before compiling', color:'cyan' });
+            x_console.out({ message:'-g, --justgit\t\t\tjust create the vue_git.dsl version', color:'cyan' });
+            x_console.out({ message:'-p, --deploy [local,eb:x]\tforce change the deploy value', color:'cyan' });
+            x_console.out({ message:'-n, --nodeploy\t\t\tdo everything as requested, except launching the terminal', color:'cyan' });
+            x_console.out({ message:'-f, --folder name\t\toutput folder name. default: central node text', color:'cyan' });
+            x_console.out({ message:'-c, --cpu [float]\t\tamount of cpus to use. default:'+require('os').cpus().length, color:'cyan' });
+            x_console.out({ message:'-w, --watch\t\t\tkeep watching for file changes to given file after compilation', color:'cyan' });
+            x_console.out({ message:'-d, --debug\t\t\tturns verbose logging on', color:'cyan' });
+            x_console.out({ message:'-h, --help\t\t\tthis console output', color:'cyan' });
+            console.log('');
+            x_console.out({ message:'Special options:', color:'brightYellow' });
+            x_console.out({ message:'--aws_region\t\t\tAWS region overwrite (default:us-east-1)', color:'yellow' });
+            x_console.out({ message:'--secrets-pass [string]\t\tSecret password for encrypting / decrypting config->secrets', color:'yellow' });
+            x_console.out({ message:'--secrets-pass-save [string]\tSave to disk the given secret password encrypted', color:'yellow' });
+            x_console.out({ message:'--diff-from [file]\t\tCreates a vue_diff.dsl file with the differences between the --source file and this one', color:'yellow' });
+            x_console.out({ message:'--export-html [file]\t\tCreates an html representation of given dsl file within the specified directory', color:'yellow' });
+            x_console.out({ message:'--silent\t\t\tCompiles in the most quiet mode posible (CI default mode)', color:'yellow' });
+            console.log('');
+        //}
+        //copyright
+        x_console.out({ message:`Copyright © 2022, Pablo Schaffner. All rights reserved.`, color:'dim' });
+    };
+    //detect if there is a vue.dsl file in current dir and src was not specified
+    if (!myArgs.src) {
+        let path = require('path');
+        let test = path.join(process.cwd(),'vue.dsl');
+        if ((await exists(test))) {
+            myArgs.src = test;
+            x_console.out({ message:`vue.dsl file found on current directory, using it as source`, color:'dim'});
+        }
+    }
+    //save or recover password
+    myArgs = await savePassword(myArgs);
+    if (myArgs.help || !myArgs.src) {
+        printUsage();
+    } else {
+        if (myArgs.src) {
+            let base = new vue(myArgs.src,myArgs);
+            await base.init();
+            await base.addCommands(require('../lib/commands.js'));
+            await base.process();
+            console.log('total time passed, since constructor: '+base.secsPassed_());
+            if (myArgs.watch) {
+                const fs = require('fs');
+                x_console.title({ title:`watching for file changes ...`, color:'dim'});
+                //console.log('watching for file changes ...');
+                fs.watchFile(myArgs.src, async function(curr,prev) {
+                    x_console.clear();
+                    x_console.out({ message:`file changed, recompiling ...`, color:'yellow'});
+                    base.abortProcessing();
+                    let base2 = new vue(myArgs.src,{...myArgs,...{
+                        nodeploy:true
+                    }});
+                    await base2.init();
+                    await base2.addCommands(require('../lib/commands.js'));
+                    await base2.process();
+                    console.log('total time passed, since constructor: '+base2.secsPassed_());
+                    x_console.title({ title:`watching for file changes ...`, color:'dim'});
+                }.bind(base));
+            }
+        } else {
+            console.log('--src requires a file to be specified!')
+            printUsage();
+        }
+    }
+})().catch(err => {
+    console.error(err);
+});
+/* */
