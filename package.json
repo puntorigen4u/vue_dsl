@@ -1,6 +1,6 @@
 {
   "name": "@concepto/vue",
-  "version": "2.0.1",
+  "version": "2.0.11",
   "description": "Concepto DSL - visually create and maintain modern VUE+MF node.js based apps (@vue)",
   "keywords": [
     "creador",

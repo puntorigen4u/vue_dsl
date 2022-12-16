@@ -11,7 +11,7 @@
 </p>
 
 ## Description
-<a href="https://nuxtjs.org/">VueJS + MF</a> module for <a href="https://www.npmjs.com/package/@concepto/cli">Concepto DSL</a>
+<a href="https://module-federation.github.io/">VueJS + MF</a> module for <a href="https://www.npmjs.com/package/@concepto/cli">Concepto DSL</a>
 
 ## Installation
 
