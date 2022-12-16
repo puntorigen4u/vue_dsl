@@ -253,7 +253,6 @@ export default class vue_dsl extends concepto {
             'components': 'src/components/',
             'pages': 'src/pages/',
             'plugins': 'src/plugins/',
-            'static': 'src/static/',
             'public': 'public/',
             'middleware': 'src/middleware/',
             'server': '', // not supported here 'src/server/',
@@ -284,11 +283,11 @@ export default class vue_dsl extends concepto {
             await Object.keys(this.x_state.config_node.copiar).map(async function(key) {
                 let abs = path.join(this.x_state.dirs.base, key);
                 try {
-                    await copy(abs, this.x_state.dirs.static);
+                    await copy(abs, this.x_state.dirs.public);
                 } catch (err_copy) {
                     if (err_copy.code != 'EEXIST') this.x_console.outT({ message: `error: copying directory ${abs}`, data: err_copy });
                 }
-                //console.log('copying ',{ from:abs, to:this.x_state.dirs.static });
+                //console.log('copying ',{ from:abs, to:this.x_state.dirs.public });
             }.bind(this));
             this.x_console.outT({ message: `copying config:copiar directories ... READY`, color: `yellow` });
             delete this.x_state.config_node.copiar;
@@ -302,7 +301,7 @@ export default class vue_dsl extends concepto {
             // copy icon to static dir
             let path = require('path');
             let source = path.join(this.x_state.dirs.base, this.x_state.config_node['nuxt:icon']);
-            let target = this.x_state.dirs.static + 'icon.png';
+            let target = this.x_state.dirs.public + 'icon.png';
             this.debug({ message: `favicon dump (copy icon)`, color: `yellow`, data: source });
             let fs = require('fs').promises;
             try {
@@ -2047,7 +2046,7 @@ ${cur.attr('name')}: {
                     // everything is client mode here
                     this.x_state.bootloader.imports[import_as] = `import ${import_as} from '@plugins/${import_as}.js';\n`;
                     let target = path.join(this.x_state.dirs.plugins, `${import_as}.js`);
-                    if (write) await this.writeFile(target, code);
+                    //if (write) await this.writeFile(target, code);
                 }
                 //10-ago-21 assign code to plugin registry (for storybook)
                 resp.stories[plugin_key] = plugin;
@@ -2068,7 +2067,7 @@ ${cur.attr('name')}: {
                     this.x_state.bootloader.imports[import_as] = `import ${import_as} from '@plugins/${import_as}.js';\n`;
                     //resp.nuxt_config.push({ src:`~/plugins/${import_as}.js` });
                     let target = path.join(this.x_state.dirs.plugins, `${import_as}.js`);
-                    if (write) await this.writeFile(target, code);
+                    //if (write) await this.writeFile(target, code);
                 }
                 //10-ago-21 assign code to plugin registry (for storybook)
                 resp.stories[plugin_key] = plugin;
@@ -2804,7 +2803,7 @@ export const decorators = [
         if (this.x_state.npm['gif.js']) {
             this.x_console.outT({ message: `downloading required gif.worker.js file for gif.js npm package`, color: 'yellow' });
             let fetch = require('node-fetch');
-            let static_path = path.join(this.x_state.dirs.static, 'gif.worker.js');
+            let static_path = path.join(this.x_state.dirs.public, 'gif.worker.js');
             let worker = await fetch('https://raw.githubusercontent.com/jnordberg/gif.js/master/dist/gif.worker.js');
             let contenido = await worker.text();
             await fs.writeFile(static_path, contenido, 'utf-8');
